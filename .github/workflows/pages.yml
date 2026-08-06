@@ -1,4 +1,4 @@
-name: Deploy client to GitHub Pages
+name: Deploy React app
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: pages
   cancel-in-progress: true
 
 jobs:
@@ -24,17 +24,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload client folder
-        uses: actions/upload-pages-artifact@v4
+      - name: Set up Node
+        uses: actions/setup-node@v7
         with:
-          path: ./client
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: client/package-lock.json
 
-      - name: Deploy GitHub Pages
+      - name: Install dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Build React app
+        working-directory: client
+        run: npm run build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload built app
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: client/dist
+
+      - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
